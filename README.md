@@ -18,3 +18,6 @@ Initial Version
 
 ## License
 GNU Affero General Public License v3.0
+
+## Based on
+https://github.com/jegade/followercounter
