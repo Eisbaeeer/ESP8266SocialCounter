@@ -11,7 +11,7 @@
  * + Changed startup mode to 7
  * 
  * Date: 20201011
- * + Update URL --> http://firmware.kidbuild.de/followercounter.ino.bin
+ * + Update URL --> http://firmware.kidbuild.de/ESP8266SocialCounter.ino.nodemcu.bin
  * + YouTube Counter
  * 
  * Tastendruck
