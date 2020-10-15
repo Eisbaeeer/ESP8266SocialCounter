@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 1.3
+ * (Eisbaeeer 20201015)
+ * + push button mode on display
+ * 
  * Changed by Eisbaeeer
  * Version: 1.2
  * 
@@ -95,7 +99,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "1.2"
+#define VERSION "1.3"
 #define ROTATE 90
 #define USE_SERIAL Serial
 
@@ -575,7 +579,14 @@ void loop() {
       buttonPushCounter++;
       lastPressed = currentMillis;
       Serial.println("push");
-      printPixel(31,7);
+      // Display pushed button counts on display
+      char buttonPressed[10]="";  // 3 digits
+      String msg = " <--";
+      //sprintf(buttonPressed, "%02d", buttonPushCounter);
+      sprintf(buttonPressed, "%2d", buttonPushCounter);
+      strcat( buttonPressed, msg.c_str() );
+      printString(0,7,buttonPressed,1);
+      //printPixel(31,7);
       Serial.println(buttonPushCounter);
     } else {
       // if the current state is LOW then the button went from on to off:
@@ -650,7 +661,7 @@ void loop() {
 
                 default:
 
-                  printString(0,7,"Too many",1);
+                  printString(0,7,"----",1);
                   break;
             }
       }

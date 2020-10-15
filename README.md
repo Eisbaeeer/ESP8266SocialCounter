@@ -12,6 +12,16 @@ http://www.kidbuild.de
 
 ## Changelog
 
+### 1.3
+- (Eisbaeeer 20201015)   
++ push button mode on display
+
+### 1.2
+- (Eisbaeeer 20201012)   
++ WebPage Config full support
++ Changed binary to default export of Arduino IDE
++ Changed startup mode to 7
+
 ### 1.0
 - (Eisbaeeer)
 Initial Version
