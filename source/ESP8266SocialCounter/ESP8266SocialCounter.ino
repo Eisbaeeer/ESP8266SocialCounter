@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 1.4
+ * (Eisbaeer 20201026
+ * + display correct counter with logo if more than 4 modules used
+ * 
  * Version 1.3
  * (Eisbaeeer 20201015)
  * + push button mode on display
@@ -71,7 +75,8 @@ char CHANNEL_ID[30]; // makes up the url of channel
 U8G2_MAX7219_64X8_F_4W_SW_SPI u8g2(U8G2_R2, 12, 15, 13, U8X8_PIN_NONE);
 
 
-const long interval = 3000*1000;  // alle 60 Minuten prüfen
+//const long interval = 3000*1000;  // alle 50 Minuten prüfen
+const long interval = 3000*200;  // alle 10 Minuten prüfen
 unsigned long previousMillis = millis() - 2980*1000; 
 unsigned long lastPressed = millis();
 
@@ -99,7 +104,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "1.3"
+#define VERSION "1.4"
 #define ROTATE 90
 #define USE_SERIAL Serial
 
@@ -377,7 +382,7 @@ void setup() {
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
   setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 0);  // https://github.com/nayarsystems/posix_tz_db 
    
-  printString(0,7,"Config", 1);
+  printString(0,7,"boot...", 1);
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -417,7 +422,7 @@ void setup() {
   // Youtube Debug settings
   api._debug = true;
  
-  printString(0,7,"Starte",1);
+  printString(0,7,"start...",1);
  
 }
 
@@ -772,7 +777,28 @@ void printYoutubeFollower() {
     if (api.channelStats.subscriberCount > 0 ) {
       int modules = String(maxModules).toInt();
 
-      if ( api.channelStats.subscriberCount > 9999  ) {
+      // If more then 4 modules are used
+    if (modules > 4 ) {
+         printString(12,8,copy,2);
+
+        // YoutTube Logo
+        printHline(1,0,9);
+        printHline(5,1,3);
+        printHline(5,5,3);
+        printHline(1,6,9);
+        
+        printVline(0,1,0,5);
+        printVline(1,1,1,5);
+        printVline(2,1,2,5);
+        printVline(3,1,3,5);
+        printVline(7,2,7,4);
+        printVline(8,1,8,5);
+        printVline(9,1,9,5);
+        printVline(10,1,10,5);
+                       
+        printPixel(6,2);
+        printPixel(6,4); 
+    } else if ( api.channelStats.subscriberCount > 9999  ) {
         clearBuffer();
         int rightAlign =  32 - u8g2.getStrWidth(copy);
         printString(rightAlign,9, copy, 2);
@@ -808,13 +834,31 @@ void printCurrentFollower() {
     if (follower > 0 ) {
       int modules = String(maxModules).toInt();
 
-      if ( follower > 9999  ) {
+    // If more then 4 modules are used
+    if (modules > 4 ) {
+        printString(12,8,copy,2);
+        
+        // Äußerer Rahmen Insta Logo
+        printHline(1,0,6);
+        printHline(1,7,6);
+
+        printVline(0,1,0,6);
+        printVline(7,1,7,6);
+
+        // Innererer Rahmen Insta Logo
+        printHline(3,2,2);
+        printHline(3,5,2);
+
+        printVline(2,3,2,4);
+        printVline(5,3,5,4);
+
+        printPixel(6,1);
+    } else if ( follower > 9999  ) {
         clearBuffer();
         int rightAlign =  32 - u8g2.getStrWidth(copy);
         printString(rightAlign,9, copy, 2);
       } else {
         printString(12,8,copy,2);
-
         
         // Äußerer Rahmen Insta Logo
         printHline(1,0,6);
