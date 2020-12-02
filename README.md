@@ -12,6 +12,33 @@ http://www.kidbuild.de
 
 ## Changelog
 
+### Version 2.1
+-(Eisbaeeer 20201119)
++ Ein- Ausblenden
+ 
+### Version 2.0
+- (Eisbaeeer 20201117)
++ changed libs from u8g2 to MD_MAX72xx
++ added animations
+
+### Version 1.5
+- (Eisbaeeer 20201102)
++ added temperature and humidity with DHT22 sensor
++ webpage config select mode (completely new)
++ changed font type
++ NEU
++ Symbol bei Uhrzeitanzeige
++ Neues Einstellungsmenü (kurzer / langer Tastendruck)
++ Jede Anzeigeart kann separat angewählt werden
++ Neue Symbole
++ Schrift wird in voller Höhe angezeigt
++ Temperaturanzeige möglich (Sensor nötig)
++ Luftfeuchtigkeit möglich (Sensor nötig)
+
+### Version 1.4
+-(Eisbaeeer 20201026
++ display correct counter with logo if more than 4 modules used
+
 ### 1.3
 - (Eisbaeeer 20201015)   
 + push button mode on display
