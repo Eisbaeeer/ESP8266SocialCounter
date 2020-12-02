@@ -9,6 +9,11 @@ http://www.kidbuild.de
 - source = Arduino Sketch
 
 ## Projektbilder
+![Logo](pics/counter1.jpg)
+![Logo](pics/counter2.jpg)
+![Logo](pics/counter3.jpg)
+![Logo](pics/counter4.jpg)
+![Logo](pics/counter5.jpg)
 
 ## Changelog
 
