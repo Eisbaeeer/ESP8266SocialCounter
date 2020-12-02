@@ -19,7 +19,7 @@ http://www.kidbuild.de
 
 ### Version 2.1
 -(Eisbaeeer 20201119)
-+ Ein- Ausblenden
++ Fade-in fade-out effect added
  
 ### Version 2.0
 - (Eisbaeeer 20201117)
@@ -28,17 +28,15 @@ http://www.kidbuild.de
 
 ### Version 1.5
 - (Eisbaeeer 20201102)
-+ added temperature and humidity with DHT22 sensor
 + webpage config select mode (completely new)
 + changed font type
-+ NEU
-+ Symbol bei Uhrzeitanzeige
-+ Neues Einstellungsmenü (kurzer / langer Tastendruck)
-+ Jede Anzeigeart kann separat angewählt werden
-+ Neue Symbole
-+ Schrift wird in voller Höhe angezeigt
-+ Temperaturanzeige möglich (Sensor nötig)
-+ Luftfeuchtigkeit möglich (Sensor nötig)
++ Symbols during display the time
++ New settings menu (short-press / long press)
++ Every information are separate selectable
++ New symbols
++ Font full hight
++ Temperature available (DHT11 or DHT22 sensor requiered)
++ Humidity available (DHT11 or DHT22 sensor required )
 
 ### Version 1.4
 -(Eisbaeeer 20201026
