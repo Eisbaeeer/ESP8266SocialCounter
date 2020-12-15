@@ -17,6 +17,10 @@ http://www.kidbuild.de
 
 ## Changelog
 
+### Version 2.2
+- (Eisbaeeer 20201214)
++ Bugfix MAX_DEVICES wird nicht aus JSON gelesen
+
 ### Version 2.1
 -(Eisbaeeer 20201119)
 + Fade-in fade-out effect added

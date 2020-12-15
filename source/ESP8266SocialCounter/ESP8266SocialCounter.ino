@@ -2,7 +2,9 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
- * ToDo: IP-Address scrolling
+ * Version 2.2
+ * (Eisbaeeer 20201214)
+ * Bugfix MAX_DEVICES wird nicht aus JSON gelesen
  * 
  * Version 2.1
  * (Eisbaeeer 20201119
@@ -143,14 +145,14 @@ int seconds;                          // var for counting seconds
 
 // MD_MAX72XX Parameter
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
-#define MAX_DEVICES 5
+int MAX_DEVICES = 4;  // Default to minimum count of devices
 #define CLK_PIN   D6
 #define CS_PIN    D7
 #define DATA_PIN  D8
+//MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
+MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, 5); // Arbitrary pins
 
 #define EEADDR 1024 // Start location to write EEPROM data.
-
-MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
 
 #define ANIMATION_DELAY 75  // milliseconds
 #define MAX_FRAMES      4   // number of animation frames
@@ -194,7 +196,6 @@ char time_value[20];
 int textsize = 0;
 int displayPtr = 1;     // pointer display items
 int follower;
-int modules = 4;
 int fade = 0;     // Fade Status
 
 // obsolete because ezbutton
@@ -206,7 +207,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.1"
+#define VERSION "2.2"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -297,17 +298,15 @@ void setup() {
   wifiManager.addParameter(&custom_intensity);
   wifiManager.addParameter(&custom_modules);
   wifiManager.addParameter(&custom_CHANNEL_ID);
- 
-
-  // MD_MAX72XX Paramter
-  mx.begin();
-  resetMatrix();
 
 #ifdef DEBUG
   Serial.begin(115200);
 #endif
-
-  printText(0, MAX_DEVICES-1, "setup...");
+  
+  // MD_MAX72XX Paramter
+  mx.begin();
+  resetMatrix();
+  printText(0, MAX_DEVICES-1, "setup");
     
   // NTP settings
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
@@ -340,8 +339,16 @@ void setup() {
   Serial.print("matrixIntensity: ");
   Serial.println(matrixIntensityString.toInt());
   int intensity = atoi(matrixIntensity);
-  mx.control(MD_MAX72XX::INTENSITY, intensity);
+  MAX_DEVICES = atoi(maxModules);
+  Serial.print("Anzahl Module: ");
+  Serial.println(MAX_DEVICES);
   
+  // Set MD_MAX again!
+  //MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
+  //mx.begin();
+  resetMatrix();
+  mx.control(MD_MAX72XX::INTENSITY, intensity);
+   
   //save the custom parameters to FS
   if (shouldSaveConfig) {
       saveConfig();
@@ -689,10 +696,9 @@ void animation() {
     animationMillis = animationCurrentMillis; 
     
       // run animation with dispaly width
-    int modules = String(maxModules).toInt();
     
     //for ( int i = 0; i < modules*8+18; i++ ) 
-    if ( (frameCount < modules*8+18) && (strcmp (ghostStat,"checked") == 0) ) {   
+    if ( (frameCount < MAX_DEVICES*8+18) && (strcmp (ghostStat,"checked") == 0) ) {   
         frameCount++;
         
   // now run the animation
@@ -1062,7 +1068,7 @@ void updateFirmware() {
     ESPhttpUpdate.onProgress(update_progress);
     ESPhttpUpdate.onError(update_error);
 
-    t_httpUpdate_return ret = ESPhttpUpdate.update(updateclient, "http://firmware.kidbuild.de/ESP8266SocialCounter_2_1.ino.nodemcu.bin");
+    t_httpUpdate_return ret = ESPhttpUpdate.update(updateclient, "http://firmware.kidbuild.de/ESP8266SocialCounter_2x.ino.nodemcu.bin");
 
     switch (ret) {
       case HTTP_UPDATE_FAILED:
@@ -1081,76 +1087,80 @@ void updateFirmware() {
 
 void clockSymbol() {
   for (uint8_t i = 0; i < 8; i++)      // count of pixels of image (8)
-    mx.setColumn(32+i, clockImg[i]);   // position of image (0)
+    mx.setColumn(((MAX_DEVICES-1)*8)+i, clockImg[i]);   // position of image (0)
 }
 
 void tempSymbol() {
   for (uint8_t i = 0; i < 7; i++)     // count of pixels of image (8)
-    mx.setColumn(33+i, tempImg[i]);   // position of image (0)
+    mx.setColumn(((MAX_DEVICES-1)*8)+i, tempImg[i]);   // position of image (0)
 }
 
 void youtubeLogo() {
+  if (MAX_DEVICES > 4 ) {
   for (uint8_t i = 0; i < 11; i++)        // count of pixels of image (8)
     mx.setColumn(29+i, youtubeImg[i]);    // position of image (0)
+  } else {
+    for (uint8_t i = 0; i < 11; i++)        // count of pixels of image (8)
+    mx.setColumn(21+i, youtubeImg[i]);    // position of image (0)
+  }
 }
 
 void instaLogo() {
   for (uint8_t i = 0; i < 8; i++)        // count of pixels of image (8)
-    mx.setColumn(32+i, instaImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, instaImg[i]);    // position of image (0)
 }
 
 void humidityIcon() {
   for (uint8_t i = 0; i < 6; i++)        // count of pixels of image (8)
-    mx.setColumn(34+i, humiImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, humiImg[i]);    // position of image (0)
 }
 
 void uncheckedIcon() {
   for (uint8_t i = 0; i < 8; i++)        // count of pixels of image (8)
-    mx.setColumn(16+i, uncheckedImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-3)*8+i, uncheckedImg[i]);    // position of image (0)
 }
 
 void checkedIcon() {
   for (uint8_t i = 0; i < 8; i++)        // count of pixels of image (8)
-    mx.setColumn(16+i, checkedImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-3)*8+i, checkedImg[i]);    // position of image (0)
 }
 
 void rebootIcon() {
   for (uint8_t i = 0; i < 7; i++)        // count of pixels of image (8)
-    mx.setColumn(33+i, rebootImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, rebootImg[i]);    // position of image (0)
 }
 
 void downloadIcon() {
   for (uint8_t i = 0; i < 7; i++)        // count of pixels of image (8)
-    mx.setColumn(33+i, downloadImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, downloadImg[i]);    // position of image (0)
 }
 
 void trashIcon() {
   for (uint8_t i = 0; i < 8; i++)        // count of pixels of image (8)
-    mx.setColumn(32+i, trashImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, trashImg[i]);    // position of image (0)
 }
 
 void infoIcon() {
   for (uint8_t i = 0; i < 4; i++)        // count of pixels of image (8)
-    mx.setColumn(36+i, infoImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, infoImg[i]);    // position of image (0)
 }
 
 void fadeSymbol() {
   for (uint8_t i = 0; i < 7; i++)        // count of pixels of image (8)
-    mx.setColumn(33+i, fadeImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, fadeImg[i]);    // position of image (0)
 }
 
 void ghostSymbol() {
   for (uint8_t i = 0; i < 7; i++)        // count of pixels of image (8)
-    mx.setColumn(33+i, ghostImg[i]);    // position of image (0)
+    mx.setColumn((MAX_DEVICES-1)*8+i, ghostImg[i]);    // position of image (0)
 }
 
 void printTime() {
-  int modules = String(maxModules).toInt();
   time_t now = time(nullptr);
   String time = String(ctime(&now));
   time.trim();
   
-  if (modules > 4 ) {
+  if (MAX_DEVICES > 4 ) {
     String mvTime = "   ";
     mvTime = mvTime + time.substring(11,16);
     mvTime.toCharArray(time_value, 10);
@@ -1169,10 +1179,8 @@ void printYoutubeFollower() {
     move = move + youtubecount;
 
     if (api.channelStats.subscriberCount > 0 ) {
-      int modules = String(maxModules).toInt();
-
       // If more then 4 modules are used
-    if ( modules > 4 ) {
+    if ( MAX_DEVICES > 4 ) {
          char copy[move.length()+1];
          move.toCharArray(copy, move.length()+1); 
          printText(0, MAX_DEVICES-1, copy);
@@ -1197,10 +1205,8 @@ void printCurrentFollower() {
     move =  move + instacount;
 
     if (follower > 0 ) {
-      int modules = String(maxModules).toInt();
-
     // If more then 4 modules are used
-    if (modules > 4 ) {
+    if (MAX_DEVICES > 4 ) {
         char copy[move.length()+1];
         move.toCharArray(copy, move.length()+1);
         printText(0, MAX_DEVICES-1, copy);
@@ -1219,7 +1225,6 @@ void printCurrentFollower() {
 }
 
 void printTemperature() {
-      int modules = String(maxModules).toInt();
       // Get temperature event and print its value.
   sensors_event_t event;
   dht.temperature().getEvent(&event);
@@ -1231,7 +1236,7 @@ void printTemperature() {
     hitze = hitze + String(event.temperature,1);    // convert to one digit after dot
     hitze = hitze + "^C";                           // add °C
       // If more then 4 modules are used
-    if (modules > 4 ) {
+    if (MAX_DEVICES > 4 ) {
     char copy[hitze.length()+1];
     hitze.toCharArray(copy, hitze.length()+1);  
     printText(0, MAX_DEVICES-1, copy);
@@ -1247,7 +1252,6 @@ void printTemperature() {
 }
 
 void printHumidity() {
-      int modules = String(maxModules).toInt();
   // Get humidity event and print its value.
   sensors_event_t event;
   dht.humidity().getEvent(&event);
@@ -1260,7 +1264,7 @@ void printHumidity() {
     feuchte = feuchte + String(event.relative_humidity,1);    // convert to one digit after dot
     feuchte = feuchte+"%";                          // add %
     // If more then 4 modules are used
-    if (modules > 4 ) {
+    if (MAX_DEVICES > 4 ) {
     char copy[feuchte.length()+1];
     feuchte.toCharArray(copy, feuchte.length()+1);  
     printText(0, MAX_DEVICES-1, copy);
