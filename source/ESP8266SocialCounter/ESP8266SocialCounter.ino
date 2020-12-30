@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.3
+ * (Eisbaeeer 20201230)
+ * Bugfix read temperature and humitdity only if checked
+ * 
  * Version 2.2
  * (Eisbaeeer 20201214)
  * Bugfix MAX_DEVICES wird nicht aus JSON gelesen
@@ -207,7 +211,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.2"
+#define VERSION "2.3"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -454,7 +458,9 @@ void loop() {
     instagram();
     }
 
+    if ( (strcmp (tempStat,"checked") == 0 ) | (strcmp (humiStat,"checked") == 0 ) ) {
     getSensor();
+    }
   }
 
 

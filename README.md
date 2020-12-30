@@ -17,6 +17,10 @@ http://www.kidbuild.de
 
 ## Changelog
 
+### Version 2.3
+- (Eisbaeeer 20201230)
++ Bugfix read temperature and humitdity only if checked
+
 ### Version 2.2
 - (Eisbaeeer 20201214)
 + Bugfix MAX_DEVICES wird nicht aus JSON gelesen
