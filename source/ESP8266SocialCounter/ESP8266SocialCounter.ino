@@ -2,6 +2,11 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.4
+ * (Eisbaeeer 20210101)
+ * Bugfix redirect 'captive portal' first config not working
+ * Cleaned code
+ * 
  * Version 2.3
  * (Eisbaeeer 20201230)
  * Bugfix read temperature and humitdity only if checked
@@ -129,7 +134,7 @@ char tempStat[8] = "";
 char instaStat[8] = "checked";
 char youtuStat[8] = "checked";
 char clockStat[8] = "checked";
-char fadeStat[8] = "checked";
+char fadeStat[8] = "";
 char ghostStat[8] = "";
 
 char htmlBuffer[4096];
@@ -146,6 +151,9 @@ int fadeOutStat = 0;
 unsigned long secondPreviousMillis = 0;
 const long secondInterval = 1000;   // one second
 int seconds;                          // var for counting seconds
+
+// DNS stuff
+const byte DNS_PORT = 53;
 
 // MD_MAX72XX Parameter
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
@@ -180,7 +188,6 @@ unsigned long pressedTime  = 0;
 unsigned long releasedTime = 0;
 
 const long interval = 3000*1000;  // alle 50 Minuten prüfen
-//const long interval = 3000*200;  // alle 10 Minuten prüfen
 unsigned long previousMillis = millis() - 2980*1000; 
 unsigned long lastPressed = millis();
 unsigned long animationMillis = 0;  // helper for animation
@@ -201,10 +208,6 @@ int textsize = 0;
 int displayPtr = 1;     // pointer display items
 int follower;
 int fade = 0;     // Fade Status
-
-// obsolete because ezbutton
-int mode = 7;
-// int modetoggle = 0;
 
 // Variables will change:
 int buttonPushCounter = 0;   // counter for the number of button presses
@@ -233,8 +236,7 @@ void setup() {
  button.setDebounceTime(50); // set debounce time to 50 milliseconds
  
   // Set Reset-Pin to Input Mode
-  //pinMode(TOGGLE_PIN, INPUT);
-  
+ 
   if (SPIFFS.begin()) {
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
@@ -272,13 +274,6 @@ void setup() {
         if (!jsonMatrixIntensity.isNull()) {
             strcpy(matrixIntensity, json["matrixIntensity"]);
         } 
-                
-        JsonVariant jsonMode = json["mode"];
-        if (!jsonMode.isNull()) { 
-          mode = jsonMode.as<int>();
-        } else {
-
-        }
       }
     } else {
       
@@ -286,7 +281,7 @@ void setup() {
   } else {
     Serial.println("failed to mount FS");
   }
-  
+
   WiFiManager wifiManager;
 
   // Requesting Instagram and Intensity for Display
@@ -297,10 +292,10 @@ void setup() {
   WiFiManagerParameter custom_CHANNEL_ID("CHANNEL_ID", "YoutTube Channel ID", CHANNEL_ID, 30);
 
   // Add params to wifiManager
+  wifiManager.addParameter(&custom_modules);
+  wifiManager.addParameter(&custom_intensity);
   wifiManager.addParameter(&custom_instagram);
   wifiManager.addParameter(&custom_API_KEY);
-  wifiManager.addParameter(&custom_intensity);
-  wifiManager.addParameter(&custom_modules);
   wifiManager.addParameter(&custom_CHANNEL_ID);
 
 #ifdef DEBUG
@@ -347,9 +342,6 @@ void setup() {
   Serial.print("Anzahl Module: ");
   Serial.println(MAX_DEVICES);
   
-  // Set MD_MAX again!
-  //MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
-  //mx.begin();
   resetMatrix();
   mx.control(MD_MAX72XX::INTENSITY, intensity);
    
@@ -392,8 +384,9 @@ void setup() {
   Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("%"));
   Serial.println(F("------------------------------------"));
 
+  
+  
   // lets start
-  //printString(0,8,"start...",2);
   printText(0, MAX_DEVICES-1, "start...");
   prevTimeAnim = millis();
     
@@ -450,11 +443,17 @@ void loop() {
     
     if ( strcmp (youtuStat,"checked") == 0 ) {
     Serial.println("requesting youtube counters..."); 
+      if (api.channelStats.subscriberCount == 0 ) {
+        printText(0, MAX_DEVICES-1, "youtu...");   
+      }
     youtube();
     }
 
     if ( strcmp (instaStat,"checked") == 0 ) {
     Serial.println("requesting instagram counter..."); 
+      if (follower == 0 ) {
+        printText(0, MAX_DEVICES-1, "insta...");   
+      }
     instagram();
     }
 
@@ -495,7 +494,6 @@ void loop() {
   }
 
   if ( fadeInStat == 1 ) {
-//    if ( strcmp (ghostStat,"") == 0) {
       if ( strcmp (fadeStat,"checked") == 0 ) {
         int intensity = atoi(matrixIntensity);
        if ( fadeInTime <= intensity ) {
@@ -505,11 +503,9 @@ void loop() {
        }
       }
    }
- // }
 
  if (fadeOutStat == 1 ) {
- // if ( strcmp (ghostStat,"") == 0) {
-      if ( strcmp (fadeStat,"checked") == 0 ) {
+       if ( strcmp (fadeStat,"checked") == 0 ) {
         if ( fadeOutTime >= 0 ) {
             mx.control(MD_MAX72XX::INTENSITY, fadeOutTime);
        } else {
@@ -519,8 +515,7 @@ void loop() {
        }
       }
   }
-// }
-  
+
 }
 
 
@@ -726,7 +721,6 @@ void animation() {
     } else {                          // Wenn die Animation fertig ist, nächsten Wert anzeigen
       displayInit = false;
       frameCount = 0;
-      //DisplayValues();
       fadeOutTime = atoi(matrixIntensity);
       fadeOutStat = 1;
       
@@ -738,11 +732,8 @@ void animation() {
   }
  }
 }
-//}
 
 void handleRoot() {
-  //Serial.print("HTML Buffer:");
-  //Serial.println(htmlBuffer);
   ESPStringTemplate webpage(htmlBuffer, sizeof(htmlBuffer));
   TokenStringPair pair[1];
   TokenStringPair apipair[1];
@@ -844,10 +835,7 @@ void getConfig() {
   String matrixIntensityString = intensityString;
   matrixIntensityString.toCharArray(matrixIntensity,40);
 
- // u8g2.setContrast(16*matrixIntensityString.toInt());
- // u8g2.refreshDisplay();
-
-#ifdef DEBUG
+ #ifdef DEBUG
       Serial.println("Save config with values:");
       Serial.print("Instagram Name: ");
       Serial.println(instagramNameString);
@@ -904,7 +892,6 @@ void saveConfig() {
     json["instagramName"] = instagramName;
     json["matrixIntensity"] = matrixIntensity;
     json["maxModules"] = maxModules;
-    json["mode"] = mode;
     json["API_KEY"] = API_KEY;
     json["CHANNEL_ID"] = CHANNEL_ID;
     json["humiStat"] = humiStat;
@@ -928,12 +915,10 @@ void saveConfig() {
 void infoWlan() {
   if (WiFi.status() ==  WL_CONNECTED ) {
     // WLAN Ok
-    //printString(0,8,"WIFI OK",2);
     printText(0, MAX_DEVICES-1, "WIFI OK");
     delay(2000);
   } else {
     // WLAN Error
-    //printString(0,8,"WIFI Error",2);
     printText(0, MAX_DEVICES-1, "WIFI Error");
     delay(2000);
   }
@@ -941,30 +926,23 @@ void infoWlan() {
 
 void infoIP() {
   String localIP = WiFi.localIP().toString();
-  //printString(0,8,"IP:",2);
   char copy[localIP.length()+1];
   localIP.toCharArray(copy, localIP.length()+1);
   printText(0, MAX_DEVICES-1, "IP");
   delay(2000);
-  //printString(0,8,localIP,2);
   printText(0, MAX_DEVICES-1, copy);
   delay(2000);
-  //printString(0,8,localIP.substring(8),2);
-  //printText(0, MAX_DEVICES-1, copy.substring(8));
-  //delay(2000);
 }
 
 void infoVersion() {
   char versionString[8];
   sprintf(versionString,"v:%s", VERSION);
-  //printString(0,8,versionString ,2);
   printText(0, MAX_DEVICES-1, versionString);
   delay(2000);
 }
 
 void infoReset() {
     Serial.println("Format System");
-    //printString(0,8,"format",2);
     printText(0, MAX_DEVICES-1, "format...");
     // Reset Wifi-Setting
     WiFiManager wifiManager;
@@ -976,7 +954,6 @@ void infoReset() {
 }
 
 void restartX() {
-  //printString(0,8,"reboot",2);
   printText(0, MAX_DEVICES-1, "reboot..");
   delay(1000);
   ESP.reset();
@@ -1038,13 +1015,11 @@ void getSensor() {
 }
 
 void update_started() {
-  //printString(0,8,"update …",2);
   printText(0, MAX_DEVICES-1, "update...");
   USE_SERIAL.println("CALLBACK:  HTTP update process started");
 }
 
 void update_finished() {
-  //printString(0,8,"done",2);
   printText(0, MAX_DEVICES-1, "done");
   USE_SERIAL.println("CALLBACK:  HTTP update process finished");
 }
@@ -1053,7 +1028,6 @@ void update_progress(int cur, int total) {
   char progressString[10];
   float percent = ((float)cur   / (float)total )  * 100;
   sprintf(progressString, " %s",  String(percent).c_str()  );
-  //printString(0,8,progressString,2);
   printText(0, MAX_DEVICES-1, progressString);
   USE_SERIAL.printf("CALLBACK:  HTTP update process at %d of %d bytes...\n", cur, total);
 }
@@ -1061,7 +1035,6 @@ void update_progress(int cur, int total) {
 void update_error(int err) {
   char errorString[8];
   sprintf(errorString, "Err %d", err);
-  //printString(0,8,errorString,2);
   printText(0, MAX_DEVICES-1, errorString);
   USE_SERIAL.printf("CALLBACK:  HTTP update fatal error code %d\n", err);
 }
@@ -1542,7 +1515,6 @@ void settingsMenu(void) {
       if ( buttonLong == 1 ) {
       buttonLong = 0;
       menuActive = 0;
-      //printString(0,8,"done...",2);
       printText(0, MAX_DEVICES-1, "done...");
       delay(1000);
       saveConfig();
