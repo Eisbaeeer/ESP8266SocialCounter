@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.5
+ * (Eisbaeeer 20200103
+ * Extended info WifiManager on display
+ * 
  * Version 2.4
  * (Eisbaeeer 20210101)
  * Bugfix redirect 'captive portal' first config not working
@@ -94,6 +98,7 @@
 #include <DNSServer.h>            // - Local DNS Server used for redirecting all requests to the configuration portal
 #include <ESP8266WebServer.h>     // - Local WebServer used to serve the configuration portal
 #include <WiFiManager.h>          // WifiManager 
+#include <arduino-timer.h>        // Arduino Timer               https://github.com/contrem/arduino-timer
 
 
 #include <NTPClient.h>
@@ -164,7 +169,7 @@ int MAX_DEVICES = 4;  // Default to minimum count of devices
 //MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
 MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, 5); // Arbitrary pins
 
-#define EEADDR 1024 // Start location to write EEPROM data.
+//#define EEADDR 1024 // Start location to write EEPROM data.
 
 #define ANIMATION_DELAY 75  // milliseconds
 #define MAX_FRAMES      4   // number of animation frames
@@ -214,7 +219,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.3"
+#define VERSION "2.5"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -282,7 +287,14 @@ void setup() {
     Serial.println("failed to mount FS");
   }
 
+  // MD_MAX72XX Paramter
+  mx.begin();
+  resetMatrix();
+  printText(0, MAX_DEVICES-1, "setup");
+
   WiFiManager wifiManager;
+  //set callback that gets called when connecting to previous WiFi fails, and enters Access Point mode
+  wifiManager.setAPCallback(configModeCallback);
 
   // Requesting Instagram and Intensity for Display
   WiFiManagerParameter custom_instagram("Instagram", "Instagram", instagramName, 40);
@@ -301,19 +313,14 @@ void setup() {
 #ifdef DEBUG
   Serial.begin(115200);
 #endif
-  
-  // MD_MAX72XX Paramter
-  mx.begin();
-  resetMatrix();
-  printText(0, MAX_DEVICES-1, "setup");
-    
+      
   // NTP settings
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
   setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 0);  // https://github.com/nayarsystems/posix_tz_db 
    
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-  wifiManager.autoConnect("FollowerCounter");
+  wifiManager.autoConnect("Counter");
 
   server.on("/", handleRoot);
   server.on("/format", getFormat);
@@ -523,6 +530,21 @@ void loop() {
 // *****************************************************
 // ENDE Loop
 // *****************************************************
+
+void configModeCallback (WiFiManager *myWiFiManager) {
+  Serial.println("Entered config mode");
+  Serial.println(WiFi.softAPIP());
+  //if you used auto generated SSID, print it
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+
+  // printout to dipslay
+  resetMatrix();
+  printText(0, MAX_DEVICES-1, "conn.");
+  delay(2000);
+  printText(0, MAX_DEVICES-1, "to");
+  delay(2000);
+  printText(0, MAX_DEVICES-1, "counter");
+}
 
 void DisplayValues (void) { 
     if ( menuActive == 0 ) {

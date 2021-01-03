@@ -17,6 +17,15 @@ http://www.kidbuild.de
 
 ## Changelog
 
+### Version 2.5
+- (Eisbaeeer 20200103)
++ Extended info WifiManager on display
+
+### Version 2.4
+- (Eisbaeeer 20210101)
++ Bugfix redirect 'captive portal' first config not working
++ Cleaned code
+
 ### Version 2.3
 - (Eisbaeeer 20201230)
 + Bugfix read temperature and humitdity only if checked
