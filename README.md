@@ -32,7 +32,7 @@ http://www.kidbuild.de
 
 ### Version 2.2
 - (Eisbaeeer 20201214)
-+ Bugfix MAX_DEVICES wird nicht aus JSON gelesen
++ Bugfix MAX_DEVICES not read from JSON
 
 ### Version 2.1
 -(Eisbaeeer 20201119)
