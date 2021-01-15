@@ -2,8 +2,17 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.7
+ * (Eisbaeeer 20210114)
+ * + added scrolltext for IP-Address in info
+ * 
+ * Verison 2.6
+ * (Eisbaeeer 20210113)
+ * Change SPIFFS to LitteFS because SPIFFS is deprecated
+ * Move clock to center if 4 modules used
+ * 
  * Version 2.5
- * (Eisbaeeer 20200103
+ * (Eisbaeeer 20210103)
  * Extended info WifiManager on display
  * 
  * Version 2.4
@@ -79,7 +88,8 @@
  * 
  */
  
-#include <FS.h>                    //this needs to be first, or it all crashes and burns...
+//#include <FS.h>                    //this needs to be first, or it all crashes and burns...
+#include "LittleFS.h"              // because SPIFFS is deprecated
 #include "Arduino.h"
 #include <ESP8266WiFi.h>
 #include "InstagramStats.h"        // InstagramStats              https://github.com/witnessmenow/arduino-instagram-stats
@@ -161,6 +171,7 @@ int seconds;                          // var for counting seconds
 const byte DNS_PORT = 53;
 
 // MD_MAX72XX Parameter
+#define  DELAYTIME  100  // in milliseconds
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
 int MAX_DEVICES = 4;  // Default to minimum count of devices
 #define CLK_PIN   D6
@@ -219,7 +230,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.5"
+#define VERSION "2.7"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -234,18 +245,20 @@ bool shouldSaveConfig = false;
 // SETUP
 // ---------------------------------------------------------------------------------------------
 void setup() {
-  // Serial debugging
+
+#ifdef DEBUG
   Serial.begin(115200);
+#endif
 
  // EZButton
  button.setDebounceTime(50); // set debounce time to 50 milliseconds
  
   // Set Reset-Pin to Input Mode
  
-  if (SPIFFS.begin()) {
-    if (SPIFFS.exists("/config.json")) {
+  if (LittleFS.begin()) {
+    if (LittleFS.exists("/config.json")) {
       //file exists, reading and loading
-      File configFile = SPIFFS.open("/config.json", "r");
+      File configFile = LittleFS.open("/config.json", "r");
       if (configFile) {
         Serial.println("opened config file");
         size_t size = configFile.size();
@@ -290,6 +303,10 @@ void setup() {
   // MD_MAX72XX Paramter
   mx.begin();
   resetMatrix();
+  scrollText("kidbuild.de");
+  delay(2000);
+  resetMatrix();
+  infoVersion();
   printText(0, MAX_DEVICES-1, "setup");
 
   WiFiManager wifiManager;
@@ -309,10 +326,6 @@ void setup() {
   wifiManager.addParameter(&custom_instagram);
   wifiManager.addParameter(&custom_API_KEY);
   wifiManager.addParameter(&custom_CHANNEL_ID);
-
-#ifdef DEBUG
-  Serial.begin(115200);
-#endif
       
   // NTP settings
   configTime(0, 0, "pool.ntp.org", "time.nist.gov");
@@ -348,6 +361,10 @@ void setup() {
   MAX_DEVICES = atoi(maxModules);
   Serial.print("Anzahl Module: ");
   Serial.println(MAX_DEVICES);
+
+  if (MAX_DEVICES < 4) {
+    MAX_DEVICES = 4;
+  }
   
   resetMatrix();
   mx.control(MD_MAX72XX::INTENSITY, intensity);
@@ -434,7 +451,7 @@ void loop() {
     if ( pressDuration > LONG_PRESS_TIME ) {
       Serial.println("A long press is detected");
       buttonLong = 1;
-      mx.clear();
+      //mx.clear();
       settingsMenu();
       
     }
@@ -539,11 +556,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 
   // printout to dipslay
   resetMatrix();
-  printText(0, MAX_DEVICES-1, "conn.");
+  scrollText("Connect to Counter");
   delay(2000);
-  printText(0, MAX_DEVICES-1, "to");
-  delay(2000);
-  printText(0, MAX_DEVICES-1, "counter");
 }
 
 void DisplayValues (void) { 
@@ -924,7 +938,7 @@ void saveConfig() {
     json["ghostStat"] = ghostStat;
     json["fadeStat"] = fadeStat;    
     
-    File configFile = SPIFFS.open("/config.json", "w");
+    File configFile = LittleFS.open("/config.json", "w");
     
     if (!configFile) {
       Serial.println("failed to open config file for writing");
@@ -952,7 +966,7 @@ void infoIP() {
   localIP.toCharArray(copy, localIP.length()+1);
   printText(0, MAX_DEVICES-1, "IP");
   delay(2000);
-  printText(0, MAX_DEVICES-1, copy);
+  scrollText(copy);
   delay(2000);
 }
 
@@ -970,7 +984,7 @@ void infoReset() {
     WiFiManager wifiManager;
     wifiManager.resetSettings();
     // Format Flash
-    SPIFFS.format();
+    LittleFS.format();
     // Restart
     ESP.reset();
 }
@@ -1168,8 +1182,9 @@ void printTime() {
     printText(0, MAX_DEVICES-1, time_value);
     clockSymbol();
   } else {
-    time = time.substring(11,16);
-    time.toCharArray(time_value, 10);
+    String mvTime = " ";
+    mvTime = mvTime + time.substring(11,16);
+    mvTime.toCharArray(time_value, 10);
     printText(0, MAX_DEVICES-1, time_value);
   }
 }
@@ -1559,4 +1574,26 @@ void settingsMenu(void) {
       settingsMenu();
     }
  }
+}
+
+void scrollText(const char *p)
+{
+  uint8_t charWidth;
+  uint8_t cBuf[8];  // this should be ok for all built-in fonts
+
+  PRINTS("\nScrolling text");
+  mx.clear();
+
+  while (*p != '\0')
+  {
+    charWidth = mx.getChar(*p++, sizeof(cBuf) / sizeof(cBuf[0]), cBuf);
+
+    for (uint8_t i=0; i<=charWidth; i++)  // allow space between characters
+    {
+      mx.transform(MD_MAX72XX::TSL);
+      if (i < charWidth)
+        mx.setColumn(0, cBuf[i]);
+      delay(DELAYTIME);
+    }
+  }
 }

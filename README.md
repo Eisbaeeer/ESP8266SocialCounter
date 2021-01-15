@@ -17,6 +17,15 @@ http://www.kidbuild.de
 
 ## Changelog
 
+### Version 2.7   
+- (Eisbaeeer 20210114)   
++ added scrolltext for IP-Address in info
+ 
+### Verison 2.6   
+- (Eisbaeeer 20210113)   
++ Change SPIFFS to LitteFS because SPIFFS is deprecated
++ Move clock to center if 4 modules used
+
 ### Version 2.5
 - (Eisbaeeer 20200103)
 + Extended info WifiManager on display
