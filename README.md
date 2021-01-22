@@ -17,6 +17,10 @@ http://www.kidbuild.de
 
 ## Changelog
 
+ ### Version 2.71   
+ - (Eisbaeeer 20210120)
+ + Print "---" by blocking by Instagram
+
 ### Version 2.7   
 - (Eisbaeeer 20210114)   
 + added scrolltext for IP-Address in info

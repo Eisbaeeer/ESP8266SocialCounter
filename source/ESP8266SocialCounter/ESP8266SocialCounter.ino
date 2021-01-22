@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.71
+ * (Eisbaeeer 20210120)
+ * + Print "---" by blocking by Instagram
+ * 
  * Version 2.7
  * (Eisbaeeer 20210114)
  * + added scrolltext for IP-Address in info
@@ -107,7 +111,7 @@
 
 #include <DNSServer.h>            // - Local DNS Server used for redirecting all requests to the configuration portal
 #include <ESP8266WebServer.h>     // - Local WebServer used to serve the configuration portal
-#include <WiFiManager.h>          // WifiManager 
+#include <WiFiManager.h>          // WifiManager   https://github.com/tzapu/WiFiManager
 #include <arduino-timer.h>        // Arduino Timer               https://github.com/contrem/arduino-timer
 
 
@@ -215,8 +219,8 @@ WiFiClient updateclient;
 
 YoutubeApi api(API_KEY, client);
 
-InstagramStats instaStats(client);
 ESP8266WebServer server(80);
+InstagramStats instaStats(client);
 
 char time_value[20];
 
@@ -230,7 +234,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.7"
+#define VERSION "2.71"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -451,7 +455,7 @@ void loop() {
     if ( pressDuration > LONG_PRESS_TIME ) {
       Serial.println("A long press is detected");
       buttonLong = 1;
-      //mx.clear();
+      mx.clear();
       settingsMenu();
       
     }
@@ -1023,7 +1027,11 @@ void instagram() {
     int currentCount = response.followedByCount;
     if (currentCount > 0 ) {
         follower = currentCount;
-     }
+        printText(0, MAX_DEVICES-1, "OK");
+     } else { 
+        printText(0, MAX_DEVICES-1, "Blocked");
+     }   
+   
 }
 
 void getSensor() {
@@ -1237,6 +1245,22 @@ void printCurrentFollower() {
         printText(0, MAX_DEVICES-1, copy);
         instaLogo();
       }
+    } else {
+      instacount = "---";
+      move = "   ";
+      move =  move + instacount;
+      if (MAX_DEVICES > 4 ) {
+        char copy[move.length()+1];
+        move.toCharArray(copy, move.length()+1);
+        printText(0, MAX_DEVICES-1, copy);
+        instaLogo();
+    }  else {
+        char copy[move.length()+1];
+        move.toCharArray(copy, move.length()+1);
+        printText(0, MAX_DEVICES-1, copy);
+        instaLogo();
+      }
+      
     }
 }
 
