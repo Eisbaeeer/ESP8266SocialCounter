@@ -78,5 +78,5 @@ const char _PAGE_CONFIG_NAME[] PROGMEM  = "<label>Instagram-Name:</label> <input
 const char _PAGE_CONFIG_YOUKEY[] PROGMEM  = "<label>YouTube API-Key:</label> <input type=text size=40 name=youtubeapi value=%YOUTUBEAPI% >";
 const char _PAGE_CONFIG_YOUCHA[] PROGMEM  = "<label>YouTube CHANNEL-KEY:</label> <input type=text size=40 name=youtubeCha value=%YOUTUBECHA% >";
 
-const char _PAGE_ACTIONS[] PROGMEM = "<label>Erweiterte Funktionen</label>    <a href='/reset'>Reboot</a>   <a href='/update'>Firmware-Update-Online</a> <a href='/format'>Werkseinstellungen</a>";
+const char _PAGE_ACTIONS[] PROGMEM = "<label>Erweiterte Funktionen</label>    <a href='/reset'>Reboot</a>   <a href='/update'>Firmware-Update-Online</a> <a href='/firmware'>Firmware upload</a> <a href='/format'>Werkseinstellungen</a>";
 const char _PAGE_SOURCE[] PROGMEM = "<p><label>Infos</label>    <a href='http://www.kidbuild.de'>KidBuild</a>";

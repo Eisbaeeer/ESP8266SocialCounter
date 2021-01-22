@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.72
+ * (Eisbaeeer 20210122)
+ * + Updload firmware locally via browser
+ * 
  * Version 2.71
  * (Eisbaeeer 20210120)
  * + Print "---" by blocking by Instagram
@@ -105,7 +109,8 @@
 #include <ezButton.h>              // EZButton Lib
 
 #include <ESP8266HTTPClient.h>     // Web Download
-#include <ESP8266httpUpdate.h>     // Web Updater
+#include <ESP8266httpUpdate.h>     // Web Updater online
+#include <ESP8266HTTPUpdateServer.h>  // Web Updater http  //httpupdater
 
 #include <ArduinoJson.h>          // ArduinoJSON                 https://github.com/bblanchon/ArduinoJson
 
@@ -157,6 +162,13 @@ char fadeStat[8] = "";
 char ghostStat[8] = "";
 
 char htmlBuffer[4096];
+
+// HTML Updater Stuff
+const char* update_path = "/firmware";  //httpupdater
+const char* update_username = "admin";  //httpupdater
+const char* update_password = "admin";  //httpupdater
+ESP8266HTTPUpdateServer httpUpdater;    //httpupdater
+// HTML Updater Stuff
 
 int menuActive = 0;    // Menu
 int buttonLong = 0;  
@@ -218,7 +230,6 @@ WiFiClientSecure client;
 WiFiClient updateclient;
 
 YoutubeApi api(API_KEY, client);
-
 ESP8266WebServer server(80);
 InstagramStats instaStats(client);
 
@@ -234,7 +245,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.71"
+#define VERSION "2.72"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -344,6 +355,9 @@ void setup() {
   server.on("/update", getUpdate);
   server.on("/reset", getReset);
   server.on("/config", getConfig);
+
+  httpUpdater.setup(&server, update_path, update_username, update_password); //httpupdater
+  Serial.printf("HTTPUpdateServer ready! Open http://%s.local%s in your browser and login with username '%s' and password '%s'\n", "Counter", update_path, update_username, update_password); //httpupdater
   server.begin();
  
   Serial.print("IP address: ");
