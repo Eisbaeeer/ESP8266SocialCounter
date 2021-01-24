@@ -2,6 +2,10 @@
  * Instagram Follower Counter
  * Source: https://github.com/jegade/followercounter
  * 
+ * Version 2.73
+ * (Eisbaeeer 20210124)
+ * + fix display 5 > modules (max 10)
+ * 
  * Version 2.72
  * (Eisbaeeer 20210122)
  * + Updload firmware locally via browser
@@ -189,18 +193,18 @@ const byte DNS_PORT = 53;
 // MD_MAX72XX Parameter
 #define  DELAYTIME  100  // in milliseconds
 #define HARDWARE_TYPE MD_MAX72XX::FC16_HW
-int MAX_DEVICES = 4;  // Default to minimum count of devices
+int MAX_DEVICES = 10;  // Default to minimum count of devices
 #define CLK_PIN   D6
 #define CS_PIN    D7
 #define DATA_PIN  D8
 //MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
-MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, 5); // Arbitrary pins
+MD_MAX72XX mx = MD_MAX72XX(HARDWARE_TYPE, DATA_PIN, CLK_PIN, CS_PIN, MAX_DEVICES); // Arbitrary pins
 
 //#define EEADDR 1024 // Start location to write EEPROM data.
 
 #define ANIMATION_DELAY 75  // milliseconds
-#define MAX_FRAMES      4   // number of animation frames
-#define CHAR_SPACING  1 // pixels between characters
+#define MAX_FRAMES  4       // number of animation frames
+#define CHAR_SPACING  1     // pixels between characters
 
 // include the symbols
 #include "symbols.h" 
@@ -245,7 +249,7 @@ int buttonPushCounter = 0;   // counter for the number of button presses
 int buttonState = 1;         // current state of the button
 int lastButtonState = 1;     // previous state of the button
 
-#define VERSION "2.72"
+#define VERSION "2.73"
 #define USE_SERIAL Serial
 
 // DHT sensor
@@ -318,10 +322,9 @@ void setup() {
   // MD_MAX72XX Paramter
   mx.begin();
   resetMatrix();
-  scrollText("kidbuild.de");
-  delay(2000);
+  //scrollText("kidbuild.de");
+  //delay(2000);
   resetMatrix();
-  infoVersion();
   printText(0, MAX_DEVICES-1, "setup");
 
   WiFiManager wifiManager;
@@ -729,9 +732,7 @@ void printText(uint8_t modStart, uint8_t modEnd, char *pMsg)
 }
 
 void animation() {
-
-    //if (fadeOutStat != 1 ) {
-
+    
     if ( menuActive == 0) {       // Animation in Menu forbidden
 
    unsigned long animationCurrentMillis = millis();
@@ -752,7 +753,6 @@ void animation() {
     
       // run animation with dispaly width
     
-    //for ( int i = 0; i < modules*8+18; i++ ) 
     if ( (frameCount < MAX_DEVICES*8+18) && (strcmp (ghostStat,"checked") == 0) ) {   
         frameCount++;
         
@@ -1135,10 +1135,10 @@ void tempSymbol() {
 void youtubeLogo() {
   if (MAX_DEVICES > 4 ) {
   for (uint8_t i = 0; i < 11; i++)        // count of pixels of image (8)
-    mx.setColumn(29+i, youtubeImg[i]);    // position of image (0)
+    mx.setColumn(((MAX_DEVICES-1)*8-3)+i, youtubeImg[i]);    // position of image (0)
   } else {
     for (uint8_t i = 0; i < 11; i++)        // count of pixels of image (8)
-    mx.setColumn(21+i, youtubeImg[i]);    // position of image (0)
+    mx.setColumn(((MAX_DEVICES-1)*8-3)+i, youtubeImg[i]);    // position of image (0)
   }
 }
 

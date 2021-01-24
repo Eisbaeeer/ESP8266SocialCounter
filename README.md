@@ -17,6 +17,14 @@ http://www.kidbuild.de
 
 ## Changelog
 
+ ### Version 2.73
+ - (Eisbaeeer 20210124)
+ + fix display 5 > modules (max 10)
+  
+ ### Version 2.72
+ - (Eisbaeeer 20210122)
+ + Updload firmware locally via browser
+
  ### Version 2.71   
  - (Eisbaeeer 20210120)
  + Print "---" by blocking by Instagram
