@@ -2,8 +2,9 @@
 # -DEPRECATED- ESP8266 Social Counter
 
 ## Beschreibung
-http://www.kidbuild.de
-This repo will not be updated, because the used lib was unusable after facebook changes the instagram API. The request for counter of instagram will be blocked.
+http://www.kidbuild.de   
+
+This repo will not be updated, because the used lib was unusable after facebook changes the instagram API. The request for counter of instagram will be blocked. There is a new version on the website of kidbuild.
  
 ## Verzeichnisstruktur
 - pics = Bilder
